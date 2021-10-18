@@ -1,8 +1,8 @@
 name: Test
 
+# Trigger on any event related to issues.
 on:
     issues:
-        types: [opened]
 
 env:
     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
