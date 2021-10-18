@@ -1,0 +1,33 @@
+{
+    "name": "github-issue-date-actions",
+    "version": "0.1.0",
+    "description": "Add due dates and times to your GitHub issues.",
+    "main": "index.ts",
+    "scripts": {
+        "build": "ncc build src/main.ts --out dist --minify"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HenryRocha/github-issue-date-actions.git"
+    },
+    "keywords": [
+        "github",
+        "issue",
+        "issues",
+        "automation",
+        "action",
+        "workflow",
+        "due-date",
+        "due-time"
+    ],
+    "author": "Henry Rocha",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/HenryRocha/github-issue-date-actions/issues"
+    },
+    "homepage": "https://github.com/HenryRocha/github-issue-date-actions#readme",
+    "devDependencies": {
+        "@vercel/ncc": "^0.31.1",
+        "typescript": "^4.4.4"
+    }
+}

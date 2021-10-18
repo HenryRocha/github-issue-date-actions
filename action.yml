@@ -1,0 +1,16 @@
+name: 'GitHub Issue Date Actions'
+description: 'Add due dates and times to your GitHub issues.'
+author: 'Henry Rocha'
+
+branding:
+    icon: 'calendar'
+    color: 'pink'
+
+inputs:
+    GITHUB_TOKEN:
+        description: GitHub token.
+        required: true
+
+runs:
+    using: 'node12'
+    main: 'dist/index.js'
