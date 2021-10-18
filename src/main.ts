@@ -1,3 +1,5 @@
-export async function main() {
+async function main() {
     console.log('Hello, World! From a GitHub action.');
 }
+
+main();
