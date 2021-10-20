@@ -1,5 +1,5 @@
-import { getOctokit } from '@actions/github';
 import { debug } from '@actions/core';
+import { getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 
