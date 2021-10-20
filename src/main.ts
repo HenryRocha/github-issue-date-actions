@@ -50,6 +50,9 @@ async function main() {
                 const minutesLeftUntilDueDate: number =
                     dateActions.getMinutesUntilDate(issue.due_date) % 60;
                 const minutesLeftUntilReminder: number = dateActions.getMinutesUntilDate(reminder);
+                debug(
+                    `Issue ${issue.number}, minutes until today's reminder ${minutesLeftUntilReminder}`,
+                );
 
                 // If the time is within the reminder window, comment on the issue.
                 if (minutesLeftUntilReminder >= 0 && minutesLeftUntilReminder <= REMINDER_WINDOW) {
