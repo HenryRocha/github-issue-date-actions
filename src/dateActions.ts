@@ -8,8 +8,9 @@ type GetIssueResponse = RestEndpointMethodTypes['issues']['get']['response'];
 type Issue = GetIssueResponse['data'];
 type ListIssuesForRepoResponse = RestEndpointMethodTypes['issues']['listForRepo']['response'];
 
-export type IssueWithDueDate = Issue & {
+export type FullIssue = Issue & {
     due_date: Date;
+    reminders: Date[];
 };
 
 export default class DateActions {
@@ -60,16 +61,22 @@ export default class DateActions {
      * Get all issues with due date defined.
      * @returns An array of issues with due date defined.
      */
-    public async getAllIssuesWithDueDate(): Promise<IssueWithDueDate[]> {
+    public async getAllIssuesWithDueDate(): Promise<FullIssue[]> {
         const issues: Issue[] = await this.getAllOpenIssues();
 
-        let issuesWithDueDate: IssueWithDueDate[] = [];
+        let issuesWithDueDate: FullIssue[] = [];
         for (const issue of issues) {
-            const dueDate: Date | null = this.extractDueDate(issue.body.split('---')[0]);
+            const issueHeader: string = issue.body.split('---')[0];
+            const dueDate: Date | null = this.extractDueDate(issueHeader);
             if (dueDate) {
-                let newIssue: IssueWithDueDate = issue as IssueWithDueDate;
+                const reminders: Date[] = this.extractReminders(issueHeader);
+                let newIssue: FullIssue = issue as FullIssue;
                 newIssue.due_date = dueDate;
-                debug(`Issue ${issue.number} has due date ${dueDate.toUTCString()}.`);
+                newIssue.reminders = reminders;
+                debug(
+                    `Issue ${issue.number} has due date ${dueDate.toUTCString()}, ` +
+                        `reminders:\n${reminders}`,
+                );
                 issuesWithDueDate.push(newIssue);
             }
         }
@@ -140,11 +147,64 @@ export default class DateActions {
     }
 
     /**
+     * Extract's the reminders from the issue body. It is possible to specify the time unit
+     * in the reminder, multiple times. The reminders are expected to be in the following format:
+     * reminders: 1m 2h 3d 4w
+     * @param bodyHeader the body of the issue.
+     * @returns The due time or null if the due time is not found.
+     */
+    private extractReminders(bodyHeader: string): Date[] | null {
+        const regex: RegExp = /\s*reminders:( \d+(m|h|d|w))+\s*/;
+        const match: RegExpMatchArray | null = bodyHeader.match(regex);
+
+        if (match) {
+            const remindersStr: string = match[1];
+
+            const regexTimes: RegExp = /\s*\d+(m|h|d|w)+\s*/;
+            const matches: RegExpMatchArray | null = remindersStr.match(regexTimes);
+
+            if (matches) {
+                let reminders: Date[] = [];
+                const now: Date = new Date();
+                for (const reminderStr of matches) {
+                    if (reminderStr.includes('m')) {
+                        const minutes: number = parseInt(reminderStr.replace('m', ''), 10);
+                        const reminder: Date = new Date(now.getTime() + minutes * 60 * 1000);
+                        reminders.push(reminder);
+                    }
+
+                    if (reminderStr.includes('h')) {
+                        const hours: number = parseInt(reminderStr.replace('h', ''), 10);
+                        const reminder: Date = new Date(now.getTime() + hours * 60 * 60 * 1000);
+                        reminders.push(reminder);
+                    }
+
+                    if (reminderStr.includes('d')) {
+                        const days: number = parseInt(reminderStr.replace('d', ''), 10);
+                        const reminder: Date = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+                        reminders.push(reminder);
+                    }
+
+                    if (reminderStr.includes('w')) {
+                        const weeks: number = parseInt(reminderStr.replace('w', ''), 10);
+                        const reminder: Date = new Date(
+                            now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000,
+                        );
+                        reminders.push(reminder);
+                    }
+                }
+
+                return reminders;
+            }
+        }
+    }
+
+    /**
      * Calculates the time left until the due date, taking into account time zones.
      * @param issue issue with a due date.
      * @returns Time until due date.
      */
-    public getTimeLeftUntilDueDate(issue: IssueWithDueDate): number {
+    public getTimeLeftUntilDueDate(issue: FullIssue): number {
         const dueDate: Date = issue.due_date;
         const now: Date = new Date();
 
@@ -158,7 +218,7 @@ export default class DateActions {
      * @param issue issue with a due date.
      * @returns Number of days until due date.
      */
-    public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
+    public getDaysLeftUntilDueDate(issue: FullIssue): number {
         const minutesLeft: number = this.getMinutesLeftUntilDueDate(issue);
         const daysLeft: number = Math.floor(minutesLeft / (60 * 24));
         debug(
@@ -174,7 +234,7 @@ export default class DateActions {
      * @param issue issue with a due date.
      * @returns Number of minutes until due date.
      */
-    public getMinutesLeftUntilDueDate(issue: IssueWithDueDate): number {
+    public getMinutesLeftUntilDueDate(issue: FullIssue): number {
         return Math.floor(this.getTimeLeftUntilDueDate(issue) / (1000 * 60));
     }
 

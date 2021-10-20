@@ -1,6 +1,6 @@
 import { debug, getInput, setFailed } from '@actions/core';
 import { context } from '@actions/github';
-import DateActions, { IssueWithDueDate } from './dateActions';
+import DateActions, { FullIssue } from './dateActions';
 
 async function main() {
     const OVERDUE_LABEL = 'overdue';
@@ -24,7 +24,7 @@ async function main() {
         context.repo.owner,
     );
 
-    const issues: IssueWithDueDate[] = await dateActions.getAllIssuesWithDueDate();
+    const issues: FullIssue[] = await dateActions.getAllIssuesWithDueDate();
     for (const issue of issues) {
         const daysUntilDueDate: number = dateActions.getDaysLeftUntilDueDate(issue);
 
