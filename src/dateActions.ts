@@ -165,32 +165,35 @@ export default class DateActions {
 
             if (matches) {
                 let reminders: Date[] = [];
-                const now: Date = new Date();
                 for (const reminderStr of matches) {
-                    if (reminderStr.includes('m')) {
-                        const minutes: number = parseInt(reminderStr.replace('m', ''), 10);
-                        const reminder: Date = new Date(now.getTime() + minutes * 60 * 1000);
-                        reminders.push(reminder);
-                    }
+                    let reminder: Date = new Date();
 
-                    if (reminderStr.includes('h')) {
-                        const hours: number = parseInt(reminderStr.replace('h', ''), 10);
-                        const reminder: Date = new Date(now.getTime() + hours * 60 * 60 * 1000);
-                        reminders.push(reminder);
-                    }
+                    try {
+                        if (reminderStr.includes('m')) {
+                            const minutes: number = parseInt(reminderStr.replace('m', ''), 10);
+                            reminder = new Date(reminder.getTime() - minutes * 60 * 1000);
+                        }
 
-                    if (reminderStr.includes('d')) {
-                        const days: number = parseInt(reminderStr.replace('d', ''), 10);
-                        const reminder: Date = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-                        reminders.push(reminder);
-                    }
+                        if (reminderStr.includes('h')) {
+                            const hours: number = parseInt(reminderStr.replace('h', ''), 10);
+                            reminder = new Date(reminder.getTime() - hours * 60 * 60 * 1000);
+                        }
 
-                    if (reminderStr.includes('w')) {
-                        const weeks: number = parseInt(reminderStr.replace('w', ''), 10);
-                        const reminder: Date = new Date(
-                            now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000,
-                        );
+                        if (reminderStr.includes('d')) {
+                            const days: number = parseInt(reminderStr.replace('d', ''), 10);
+                            reminder = new Date(reminder.getTime() - days * 24 * 60 * 60 * 1000);
+                        }
+
+                        if (reminderStr.includes('w')) {
+                            const weeks: number = parseInt(reminderStr.replace('w', ''), 10);
+                            reminder = new Date(
+                                reminder.getTime() - weeks * 7 * 24 * 60 * 60 * 1000,
+                            );
+                        }
+
                         reminders.push(reminder);
+                    } catch (error) {
+                        debug(`Error parsing reminder: ${reminderStr}`);
                     }
                 }
 
