@@ -57,13 +57,14 @@ export default class DateActions {
 
     /**
      * Get all issues with due date defined.
+     * @returns An array of issues with due date defined.
      */
     public async getAllIssuesWithDueDate(): Promise<IssueWithDueDate[]> {
         const issues: Issue[] = await this.getAllOpenIssues();
 
         let issuesWithDueDate: IssueWithDueDate[] = [];
         for (const issue of issues) {
-            const dueDate: Date | null = this.extractDueDate(issue.body);
+            const dueDate: Date | null = this.extractDueDate(issue.body.split('---')[0]);
             if (dueDate) {
                 let newIssue: IssueWithDueDate = issue as IssueWithDueDate;
                 newIssue.due_date = dueDate;
@@ -78,9 +79,10 @@ export default class DateActions {
      * Extract's the due date from the issue body. The due date is expected to be in format YYYY-MM-DD.
      * It is also expected that the due date is defined inside an HTML comment.
      * @param body
+     * @returns The due date or null if the due date is not found.
      */
     private extractDueDate(body: string): Date | null {
-        const regex: RegExp = /<!--\s*due: (\d{4}-\d{2}-\d{2})\s*-->/;
+        const regex: RegExp = /\s*due-date: (\d{4}-\d{2}-\d{2})\s*/;
         const match: RegExpMatchArray | null = body.match(regex);
 
         if (match) {
@@ -100,16 +102,46 @@ export default class DateActions {
     /**
      * Extract's the due time from the issue body. The due time is expected to be in format HH:MM.
      * It is also expected that the due time is defined inside an HTML comment.
-     * @param body
+     * @param body the body of the issue.
+     * @returns The due time or null if the due time is not found.
      */
-    private extractDueTime(body: string): string {
-        const regex: RegExp = /<!--\s*due-time: (\d{2}:\d{2})\s*-->/;
+    private extractDueTime(body: string): string | null {
+        const regex: RegExp = /\s*due-time: (\d{2}:\d{2})\s*/;
         const match: RegExpMatchArray | null = body.match(regex);
 
         if (match) {
             return match[1];
         }
 
-        return '';
+        return null;
+    }
+
+    /**
+     * Calculates the time left until the due date.
+     * @param issue issue with a due date.
+     * @returns Number of days until due date.
+     */
+    public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
+        const dueDate: Date = issue.due_date;
+        const now: Date = new Date();
+
+        const timeLeft: number = dueDate.getTime() - now.getTime();
+        const daysLeft: number = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+
+        return daysLeft;
+    }
+
+    /**
+     * Add a label to the given issue.
+     * @param issueNumber the number of the issue.
+     * @param label the label to add.
+     */
+    public async addLabel(issue: Issue, label: string): Promise<any> {
+        return this.octo.rest.issues.addLabels({
+            owner: this.repositoryOwner,
+            repo: this.repository,
+            issue_number: issue.number,
+            labels: [label],
+        });
     }
 }

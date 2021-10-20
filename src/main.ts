@@ -12,7 +12,6 @@ async function main() {
     }
 
     // Create the DateActions object
-    // const octokit: Octokit = github.getOctokit(GITHUB_TOKEN);
     const dateActions: DateActions = new DateActions(
         GITHUB_TOKEN,
         context.repo.repo,
@@ -20,7 +19,20 @@ async function main() {
     );
 
     const issues: IssueWithDueDate[] = await dateActions.getAllIssuesWithDueDate();
-    console.log(issues);
+    for (const issue of issues) {
+        const timeUntilDueDate: number = dateActions.getDaysLeftUntilDueDate(issue);
+
+        // Depending on the time until the due date, add to the issue a label
+        // describing the time until the due date.
+        // If the issue already has a label, remove it first.
+        if (timeUntilDueDate <= 0) {
+            await dateActions.addLabel(issue, 'overdue');
+        } else if (timeUntilDueDate <= 3) {
+            await dateActions.addLabel(issue, 'due-soon');
+        } else if (timeUntilDueDate <= 7) {
+            await dateActions.addLabel(issue, 'due-later');
+        }
+    }
 }
 
 main();
