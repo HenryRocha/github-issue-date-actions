@@ -149,6 +149,7 @@ export default class DateActions {
                 let reminders: Date[] = [];
                 for (const reminderStr of matches) {
                     let reminder: Date = new Date();
+                    debug(`Reminder now: ${reminder.toString()}`);
 
                     try {
                         if (reminderStr.includes('m')) {
