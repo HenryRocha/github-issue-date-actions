@@ -153,21 +153,25 @@ export default class DateActions {
                     try {
                         if (reminderStr.includes('m')) {
                             const minutes: number = parseInt(reminderStr.replace('m', ''), 10);
+                            debug(`Reminder time: ${minutes}}`);
                             reminder = new Date(reminder.getTime() - minutes * 60 * 1000);
                         }
 
                         if (reminderStr.includes('h')) {
                             const hours: number = parseInt(reminderStr.replace('h', ''), 10);
+                            debug(`Reminder time: ${hours}}`);
                             reminder = new Date(reminder.getTime() - hours * 60 * 60 * 1000);
                         }
 
                         if (reminderStr.includes('d')) {
                             const days: number = parseInt(reminderStr.replace('d', ''), 10);
+                            debug(`Reminder time: ${days}}`);
                             reminder = new Date(reminder.getTime() - days * 24 * 60 * 60 * 1000);
                         }
 
                         if (reminderStr.includes('w')) {
                             const weeks: number = parseInt(reminderStr.replace('w', ''), 10);
+                            debug(`Reminder time: ${weeks}}`);
                             reminder = new Date(
                                 reminder.getTime() - weeks * 7 * 24 * 60 * 60 * 1000,
                             );
