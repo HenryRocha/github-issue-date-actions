@@ -43,21 +43,6 @@ export default class DateActions {
     }
 
     /**
-     * Returns the issue.
-     * @param issueNumber The issue number.
-     * @returns The issue.
-     */
-    private async getIssue(issueNumber: number): Promise<Issue> {
-        const issueResponse: GetIssueResponse = await this.octo.rest.issues.get({
-            owner: this.repositoryOwner,
-            repo: this.repository,
-            issue_number: issueNumber,
-        });
-
-        return issueResponse.data;
-    }
-
-    /**
      * Get all issues with due date defined.
      * @returns An array of issues with due date defined.
      */
@@ -154,13 +139,13 @@ export default class DateActions {
      * @returns The due time or null if the due time is not found.
      */
     private extractReminders(bodyHeader: string): Date[] | null {
-        const regex: RegExp = /\s*reminders:( \d+(m|h|d|w))+\s*/;
+        const regex: RegExp = /\s*reminders:( \d+(m|h|d|w))+\s*/g;
         const match: RegExpMatchArray | null = bodyHeader.match(regex);
 
         if (match) {
-            const remindersStr: string = match[1];
+            const remindersStr: string = match[0];
 
-            const regexTimes: RegExp = /\s*\d+(m|h|d|w)+\s*/;
+            const regexTimes: RegExp = /\s*\d+(m|h|d|w)+\s*/g;
             const matches: RegExpMatchArray | null = remindersStr.match(regexTimes);
 
             if (matches) {
@@ -191,7 +176,6 @@ export default class DateActions {
                             );
                         }
 
-                        debug(`Found reminder: ${reminderStr} result is ${reminder.toString()}`);
                         reminders.push(reminder);
                     } catch (error) {
                         debug(`Error parsing reminder: ${reminderStr}`);
@@ -201,73 +185,6 @@ export default class DateActions {
                 return reminders;
             }
         }
-    }
-
-    /**
-     * Calculates the time left until the due date, taking into account time zones.
-     * @param issue issue with a due date.
-     * @returns Time until due date.
-     */
-    public getTimeLeftUntilDueDate(issue: FullIssue): number {
-        const dueDate: Date = issue.due_date;
-        const now: Date = new Date();
-
-        debug(`Issue: ${issue.number} Now: ${now.toString()} | Due date: ${dueDate.toString()}`);
-
-        return dueDate.getTime() - now.getTime();
-    }
-
-    /**
-     * Calculates the time left until the due date.
-     * @param issue issue with a due date.
-     * @returns Number of days until due date.
-     */
-    public getDaysLeftUntilDueDate(issue: FullIssue): number {
-        const minutesLeft: number = this.getMinutesLeftUntilDueDate(issue);
-        const daysLeft: number = Math.floor(minutesLeft / (60 * 24));
-        debug(
-            'Days and minutes left until due date' +
-                ` for issue ${issue.number} ${daysLeft} ${minutesLeft}.`,
-        );
-
-        return daysLeft;
-    }
-
-    /**
-     * Calculates the number of minutes left until the due date.
-     * @param issue issue with a due date.
-     * @returns Number of minutes until due date.
-     */
-    public getMinutesLeftUntilDueDate(issue: FullIssue): number {
-        return Math.floor(this.getTimeLeftUntilDueDate(issue) / (1000 * 60));
-    }
-
-    /**
-     * Add a label to the given issue.
-     * @param issueNumber the number of the issue.
-     * @param label the label to add.
-     */
-    public async addLabel(issue: Issue, label: string): Promise<void> {
-        await this.octo.rest.issues.addLabels({
-            owner: this.repositoryOwner,
-            repo: this.repository,
-            issue_number: issue.number,
-            labels: [label],
-        });
-    }
-
-    /**
-     * Removes a label from the given issue.
-     * @param issueNumber the number of the issue.
-     * @param label the label to remove.
-     */
-    public async removeLabel(issue: Issue, label: string): Promise<void> {
-        await this.octo.rest.issues.removeLabel({
-            owner: this.repositoryOwner,
-            repo: this.repository,
-            issue_number: issue.number,
-            name: label,
-        });
     }
 
     /**
@@ -299,6 +216,56 @@ export default class DateActions {
             repo: this.repository,
             issue_number: issue.number,
             labels: labelsToSet,
+        });
+    }
+
+    /**
+     * Calculates the time left until the given date.
+     * @param date date.
+     * @returns Time until due date.
+     */
+    public getTimeUntilDate(date: Date): number {
+        return date.getTime() - new Date().getTime();
+    }
+
+    /**
+     * Calculates the minutes left until the given date.
+     * @param date date.
+     * @returns Minutes until due date.
+     */
+    public getMinutesUntilDate(date: Date): number {
+        return Math.floor(this.getTimeUntilDate(date) / (1000 * 60));
+    }
+
+    /**
+     * Calculates the days left until the given date.
+     * @param date date.
+     * @returns days until due date.
+     */
+    public getDaysUntilDate(date: Date): number {
+        return Math.floor(this.getMinutesUntilDate(date) / (60 * 24));
+    }
+
+    /**
+     * Calculates the hours left until the given date.
+     * @param date date.
+     * @returns hours until due date.
+     */
+    public getHoursUntilDate(date: Date): number {
+        return Math.floor(this.getMinutesUntilDate(date) / 60);
+    }
+
+    /**
+     * Comments on the given issue.
+     * @param issueNumber the number of the issue.
+     * @param comment what to comment.
+     */
+    public async commentOnIssue(issueNumber: number, comment: string): Promise<void> {
+        await this.octo.rest.issues.createComment({
+            owner: this.repositoryOwner,
+            repo: this.repository,
+            issue_number: issueNumber,
+            body: comment,
         });
     }
 }
