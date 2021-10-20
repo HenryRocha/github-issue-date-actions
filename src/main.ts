@@ -33,10 +33,11 @@ async function main() {
         debug(
             `Issue: ${issue.number} | ` +
                 `Now: ${now.toString()} | ` +
-                `Due date: ${issue.due_date.toString()}` +
+                `Due date: ${issue.due_date.toString()} ` +
                 `Days until: ${daysUntilDueDate}`,
         );
 
+        let comments: string[] = [];
         issue.reminders.forEach((reminder) => {
             // Check if today is equal to the reminder date.
             if (
@@ -48,21 +49,19 @@ async function main() {
                     dateActions.getHoursUntilDate(issue.due_date) % 24;
                 const minutesLeftUntilDueDate: number =
                     dateActions.getMinutesUntilDate(issue.due_date) % 60;
-                const minutesLeftUntilReminder: number = dateActions.getMinutesUntilDate(
-                    issue.due_date,
-                );
+                const minutesLeftUntilReminder: number = dateActions.getMinutesUntilDate(reminder);
 
                 // If the time is within the reminder window, comment on the issue.
                 if (minutesLeftUntilReminder >= 0 && minutesLeftUntilReminder <= REMINDER_WINDOW) {
                     debug(
                         `Commenting on issue ${issue.number} since ` +
-                            `the reminder is within the defined window.`,
+                            `there's still ${minutesLeftUntilReminder} until the reminder date.`,
                     );
                     const assignees: string = issue.assignees
                         .map((assignee) => '@' + assignee.login)
                         .join(', ');
-                    dateActions.commentOnIssue(
-                        issue.number,
+
+                    comments.push(
                         `${assignees}\nThis issue is due in ` +
                             `${daysUntilDueDate} days ` +
                             `${hoursLeftUntilDueDate} hours ` +
@@ -71,6 +70,10 @@ async function main() {
                 }
             }
         });
+
+        if (comments.length > 0) {
+            dateActions.commentOnIssue(issue.number, comments[0]);
+        }
 
         // Depending on the time until the due date, add to the issue a label
         // describing the time until the due date.
