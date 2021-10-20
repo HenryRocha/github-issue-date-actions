@@ -119,16 +119,31 @@ export default class DateActions {
     /**
      * Calculates the time left until the due date.
      * @param issue issue with a due date.
-     * @returns Number of days until due date.
+     * @returns Time until due date.
      */
-    public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
+    public getTimeLeftUntilDueDate(issue: IssueWithDueDate): number {
         const dueDate: Date = issue.due_date;
         const now: Date = new Date();
 
-        const timeLeft: number = dueDate.getTime() - now.getTime();
-        const daysLeft: number = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        return dueDate.getTime() - now.getTime();
+    }
 
-        return daysLeft;
+    /**
+     * Calculates the time left until the due date.
+     * @param issue issue with a due date.
+     * @returns Number of days until due date.
+     */
+    public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
+        return Math.floor(this.getTimeLeftUntilDueDate(issue) / (1000 * 60 * 60 * 24));
+    }
+
+    /**
+     * Calculates the number of minutes left until the due date.
+     * @param issue issue with a due date.
+     * @returns Number of minutes until due date.
+     */
+    public getMinutesLeftUntilDueDate(issue: IssueWithDueDate): number {
+        return Math.floor(this.getTimeLeftUntilDueDate(issue) / (1000 * 60));
     }
 
     /**
@@ -136,12 +151,53 @@ export default class DateActions {
      * @param issueNumber the number of the issue.
      * @param label the label to add.
      */
-    public async addLabel(issue: Issue, label: string): Promise<any> {
-        return this.octo.rest.issues.addLabels({
+    public async addLabel(issue: Issue, label: string): Promise<void> {
+        await this.octo.rest.issues.addLabels({
             owner: this.repositoryOwner,
             repo: this.repository,
             issue_number: issue.number,
             labels: [label],
+        });
+    }
+
+    /**
+     * Removes a label from the given issue.
+     * @param issueNumber the number of the issue.
+     * @param label the label to remove.
+     */
+    public async removeLabel(issue: Issue, label: string): Promise<void> {
+        await this.octo.rest.issues.removeLabel({
+            owner: this.repositoryOwner,
+            repo: this.repository,
+            issue_number: issue.number,
+            name: label,
+        });
+    }
+
+    /**
+     * Sets the labels on the given issue.
+     * @param issueNumber the number of the issue.
+     * @param labelsToRemove list labels to remove from the issue.
+     * @param labelsToAdd list labels to add to the issue.
+     */
+    public async setLabels(
+        issue: Issue,
+        labelsToRemove: string[],
+        labelsToAdd: string[],
+    ): Promise<void> {
+        // Remove labels in the 'labelsToRemove' array.
+        let labelsToSet: string[] = issue.labels
+            .map((label: any) => label.name)
+            .filter((label: string) => !labelsToRemove.includes(label));
+
+        // Add labels in the 'labelsToKeep' array.
+        labelsToSet.concat(labelsToAdd);
+
+        await this.octo.rest.issues.setLabels({
+            owner: this.repositoryOwner,
+            repo: this.repository,
+            issue_number: issue.number,
+            labels: labelsToSet,
         });
     }
 }

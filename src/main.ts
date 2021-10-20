@@ -3,6 +3,11 @@ import { context } from '@actions/github';
 import DateActions, { IssueWithDueDate } from './dateActions';
 
 async function main() {
+    const OVERDUE_LABEL = 'overdue';
+    const DUE_TODAY_LABEL = 'due-today';
+    const DUE_SOON_LABEL = 'due-soon';
+    const DUE_LATER_LABEL = 'due-later';
+
     const GITHUB_TOKEN: string = getInput('GITHUB_TOKEN');
 
     // Check if the token is set
@@ -20,17 +25,35 @@ async function main() {
 
     const issues: IssueWithDueDate[] = await dateActions.getAllIssuesWithDueDate();
     for (const issue of issues) {
-        const timeUntilDueDate: number = dateActions.getDaysLeftUntilDueDate(issue);
+        const daysUntilDueDate: number = dateActions.getDaysLeftUntilDueDate(issue);
 
         // Depending on the time until the due date, add to the issue a label
         // describing the time until the due date.
         // If the issue already has a label, remove it first.
-        if (timeUntilDueDate <= 0) {
-            await dateActions.addLabel(issue, 'overdue');
-        } else if (timeUntilDueDate <= 3) {
-            await dateActions.addLabel(issue, 'due-soon');
-        } else if (timeUntilDueDate <= 7) {
-            await dateActions.addLabel(issue, 'due-later');
+        if (daysUntilDueDate < 0) {
+            await dateActions.setLabels(
+                issue,
+                [OVERDUE_LABEL, DUE_SOON_LABEL, DUE_LATER_LABEL],
+                [OVERDUE_LABEL],
+            );
+        } else if (daysUntilDueDate == 0) {
+            await dateActions.setLabels(
+                issue,
+                [OVERDUE_LABEL, DUE_SOON_LABEL, DUE_LATER_LABEL],
+                [DUE_TODAY_LABEL],
+            );
+        } else if (daysUntilDueDate <= 3) {
+            await dateActions.setLabels(
+                issue,
+                [OVERDUE_LABEL, DUE_TODAY_LABEL, DUE_LATER_LABEL],
+                [DUE_SOON_LABEL],
+            );
+        } else {
+            await dateActions.setLabels(
+                issue,
+                [OVERDUE_LABEL, DUE_TODAY_LABEL, DUE_SOON_LABEL],
+                [DUE_LATER_LABEL],
+            );
         }
     }
 }
