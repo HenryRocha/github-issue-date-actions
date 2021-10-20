@@ -148,6 +148,8 @@ export default class DateActions {
         const dueDate: Date = issue.due_date;
         const now: Date = new Date();
 
+        debug(`Issue: ${issue.number} Now: ${now.toString()} | Due date: ${dueDate.toString()}`);
+
         return dueDate.getTime() - now.getTime();
     }
 
