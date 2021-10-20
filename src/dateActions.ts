@@ -69,6 +69,7 @@ export default class DateActions {
             if (dueDate) {
                 let newIssue: IssueWithDueDate = issue as IssueWithDueDate;
                 newIssue.due_date = dueDate;
+                debug(`Issue ${issue.number} has due date ${dueDate.toUTCString()}.`);
                 issuesWithDueDate.push(newIssue);
             }
         }
@@ -136,7 +137,6 @@ export default class DateActions {
      */
     public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
         const minutesLeft: number = this.getMinutesLeftUntilDueDate(issue);
-
         const daysLeft: number = Math.floor(minutesLeft / (60 * 24));
         debug(
             'Days and minutes left until due date' +
