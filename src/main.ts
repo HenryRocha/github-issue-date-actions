@@ -7,6 +7,7 @@ async function main() {
     const DUE_TODAY_LABEL = 'due-today';
     const DUE_SOON_LABEL = 'due-soon';
     const DUE_LATER_LABEL = 'due-later';
+    const ALL_LABELS = [OVERDUE_LABEL, DUE_TODAY_LABEL, DUE_SOON_LABEL, DUE_LATER_LABEL];
 
     const GITHUB_TOKEN: string = getInput('GITHUB_TOKEN');
 
@@ -32,32 +33,16 @@ async function main() {
         // If the issue already has a label, remove it first.
         if (daysUntilDueDate < 0) {
             debug(`Issue ${issue.number} is being set to ${OVERDUE_LABEL}.`);
-            await dateActions.setLabels(
-                issue,
-                [OVERDUE_LABEL, DUE_SOON_LABEL, DUE_LATER_LABEL],
-                [OVERDUE_LABEL],
-            );
+            await dateActions.setLabels(issue, ALL_LABELS, [OVERDUE_LABEL]);
         } else if (daysUntilDueDate == 0) {
             debug(`Issue ${issue.number} is being set to ${DUE_TODAY_LABEL}.`);
-            await dateActions.setLabels(
-                issue,
-                [OVERDUE_LABEL, DUE_SOON_LABEL, DUE_LATER_LABEL],
-                [DUE_TODAY_LABEL],
-            );
+            await dateActions.setLabels(issue, ALL_LABELS, [DUE_TODAY_LABEL]);
         } else if (daysUntilDueDate <= 3) {
             debug(`Issue ${issue.number} is being set to ${DUE_SOON_LABEL}.`);
-            await dateActions.setLabels(
-                issue,
-                [OVERDUE_LABEL, DUE_TODAY_LABEL, DUE_LATER_LABEL],
-                [DUE_SOON_LABEL],
-            );
+            await dateActions.setLabels(issue, ALL_LABELS, [DUE_SOON_LABEL]);
         } else {
             debug(`Issue ${issue.number} is being set to ${DUE_LATER_LABEL}.`);
-            await dateActions.setLabels(
-                issue,
-                [OVERDUE_LABEL, DUE_TODAY_LABEL, DUE_SOON_LABEL],
-                [DUE_LATER_LABEL],
-            );
+            await dateActions.setLabels(issue, ALL_LABELS, [DUE_LATER_LABEL]);
         }
     }
 }
