@@ -1,4 +1,5 @@
 import { getOctokit } from '@actions/github';
+import { debug } from '@actions/core';
 import { GitHub } from '@actions/github/lib/utils';
 import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
 
@@ -134,7 +135,15 @@ export default class DateActions {
      * @returns Number of days until due date.
      */
     public getDaysLeftUntilDueDate(issue: IssueWithDueDate): number {
-        return Math.floor(this.getTimeLeftUntilDueDate(issue) / (1000 * 60 * 60 * 24));
+        const minutesLeft: number = this.getMinutesLeftUntilDueDate(issue);
+
+        const daysLeft: number = Math.floor(minutesLeft / (60 * 24));
+        debug(
+            'Days and minutes left until due date' +
+                ` for issue ${issue.number} ${daysLeft} ${minutesLeft}.`,
+        );
+
+        return daysLeft;
     }
 
     /**
