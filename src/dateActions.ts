@@ -201,6 +201,7 @@ export default class DateActions {
 
         // Add labels in the 'labelsToKeep' array.
         labelsToSet.concat(labelsToAdd);
+        debug(`Setting labels for issue ${issue.number}: ${labelsToSet}`);
 
         await this.octo.rest.issues.setLabels({
             owner: this.repositoryOwner,
