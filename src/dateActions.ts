@@ -191,6 +191,7 @@ export default class DateActions {
                             );
                         }
 
+                        debug(`Found reminder: ${reminderStr} result is ${reminder.toString()}`);
                         reminders.push(reminder);
                     } catch (error) {
                         debug(`Error parsing reminder: ${reminderStr}`);
