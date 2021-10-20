@@ -194,10 +194,14 @@ export default class DateActions {
         labelsToRemove: string[],
         labelsToAdd: string[],
     ): Promise<void> {
+        const originalLabels: string[] = issue.labels.map((label: any) => label.name);
+        debug(`Original labels for issue ${issue.number}:\n${originalLabels}`);
+
         // Remove labels in the 'labelsToRemove' array.
-        let labelsToSet: string[] = issue.labels
-            .map((label: any) => label.name)
-            .filter((label: string) => !labelsToRemove.includes(label));
+        let labelsToSet: string[] = originalLabels.filter(
+            (label: string) => !labelsToRemove.includes(label),
+        );
+        debug(`Filtered labels for issue ${issue.number}:\n${labelsToSet}`);
 
         // Add labels in the 'labelsToKeep' array.
         labelsToSet.concat(labelsToAdd);
