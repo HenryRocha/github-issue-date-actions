@@ -58,10 +58,7 @@ export default class DateActions {
                 let newIssue: FullIssue = issue as FullIssue;
                 newIssue.due_date = dueDate;
                 newIssue.reminders = reminders;
-                debug(
-                    `Issue ${issue.number} has due date ${dueDate.toUTCString()}, ` +
-                        `reminders:\n${reminders}`,
-                );
+                debug(`Issue #${issue.number} has due date`);
                 issuesWithDueDate.push(newIssue);
             }
         }
@@ -176,6 +173,7 @@ export default class DateActions {
                             );
                         }
 
+                        debug(`Found reminder: ${reminder.toString()}`);
                         reminders.push(reminder);
                     } catch (error) {
                         debug(`Error parsing reminder: ${reminderStr}`);
@@ -221,38 +219,42 @@ export default class DateActions {
 
     /**
      * Calculates the time left until the given date.
-     * @param date date.
+     * @param start start date.
+     * @param end end date. Default is current date.
      * @returns Time until due date.
      */
-    public getTimeUntilDate(date: Date): number {
-        return date.getTime() - new Date().getTime();
+    public getTimeUntilDate(start: Date, end: Date = new Date()): number {
+        return start.getTime() - end.getTime();
     }
 
     /**
      * Calculates the minutes left until the given date.
-     * @param date date.
+     * @param start start date.
+     * @param end end date. Default is current date.
      * @returns Minutes until due date.
      */
-    public getMinutesUntilDate(date: Date): number {
-        return Math.floor(this.getTimeUntilDate(date) / (1000 * 60));
+    public getMinutesUntilDate(date: Date, end: Date = new Date()): number {
+        return Math.floor(this.getTimeUntilDate(date, end) / (1000 * 60));
     }
 
     /**
      * Calculates the days left until the given date.
-     * @param date date.
+     * @param start start date.
+     * @param end end date. Default is current date.
      * @returns days until due date.
      */
-    public getDaysUntilDate(date: Date): number {
-        return Math.floor(this.getMinutesUntilDate(date) / (60 * 24));
+    public getDaysUntilDate(date: Date, end: Date = new Date()): number {
+        return Math.floor(this.getMinutesUntilDate(date, end) / (60 * 24));
     }
 
     /**
      * Calculates the hours left until the given date.
-     * @param date date.
+     * @param start start date.
+     * @param end end date. Default is current date.
      * @returns hours until due date.
      */
-    public getHoursUntilDate(date: Date): number {
-        return Math.floor(this.getMinutesUntilDate(date) / 60);
+    public getHoursUntilDate(date: Date, end: Date = new Date()): number {
+        return Math.floor(this.getMinutesUntilDate(date, end) / 60);
     }
 
     /**

@@ -28,7 +28,7 @@ async function main() {
     const issues: FullIssue[] = await dateActions.getAllIssuesWithDueDate();
     for (const issue of issues) {
         const now: Date = new Date();
-        const daysUntilDueDate: number = dateActions.getDaysUntilDate(issue.due_date);
+        const daysUntilDueDate: number = dateActions.getDaysUntilDate(issue.due_date, now);
 
         debug(
             `Issue: ${issue.number} | ` +
@@ -45,11 +45,16 @@ async function main() {
                 now.getMonth() === reminder.getMonth() &&
                 now.getDate() === reminder.getDate()
             ) {
-                const hoursLeftUntilDueDate: number =
-                    dateActions.getHoursUntilDate(issue.due_date) % 24;
-                const minutesLeftUntilDueDate: number =
-                    dateActions.getMinutesUntilDate(issue.due_date) % 60;
-                const minutesLeftUntilReminder: number = dateActions.getMinutesUntilDate(reminder);
+                let minutesLeftUntilDueDate: number = dateActions.getMinutesUntilDate(
+                    issue.due_date,
+                );
+                const hoursLeftUntilDueDate: number = Math.floor(minutesLeftUntilDueDate / 60);
+                minutesLeftUntilDueDate = minutesLeftUntilDueDate - hoursLeftUntilDueDate * 60;
+
+                const minutesLeftUntilReminder: number = dateActions.getMinutesUntilDate(
+                    reminder,
+                    now,
+                );
                 debug(
                     `Issue ${issue.number}, minutes until today's reminder ${minutesLeftUntilReminder}`,
                 );
