@@ -79,20 +79,28 @@ export default class DateActions {
 
     /**
      * Extract's the due date from the issue body. The due date is expected to be in format YYYY-MM-DD.
-     * It is also expected that the due date is defined inside an HTML comment.
-     * @param body
+     * @param bodyHeader
      * @returns The due date or null if the due date is not found.
      */
-    private extractDueDate(body: string): Date | null {
+    private extractDueDate(bodyHeader: string): Date | null {
         const regex: RegExp = /\s*due-date: (\d{4}-\d{2}-\d{2})\s*/;
-        const match: RegExpMatchArray | null = body.match(regex);
+        const match: RegExpMatchArray | null = bodyHeader.match(regex);
 
         if (match) {
             const dueDate: string = match[1];
-            const dueTime: string = this.extractDueTime(body);
+            const dueTime: string = this.extractDueTime(bodyHeader);
+            const timeZone: string = this.extractTimeZone(bodyHeader);
+
+            if (dueTime && timeZone) {
+                return new Date(`${dueDate} ${dueTime} ${timeZone}`);
+            }
 
             if (dueTime) {
                 return new Date(`${dueDate} ${dueTime}`);
+            }
+
+            if (timeZone) {
+                return new Date(`${dueDate} ${timeZone}`);
             }
 
             return new Date(dueDate);
@@ -103,13 +111,12 @@ export default class DateActions {
 
     /**
      * Extract's the due time from the issue body. The due time is expected to be in format HH:MM.
-     * It is also expected that the due time is defined inside an HTML comment.
-     * @param body the body of the issue.
+     * @param bodyHeader the body of the issue.
      * @returns The due time or null if the due time is not found.
      */
-    private extractDueTime(body: string): string | null {
+    private extractDueTime(bodyHeader: string): string | null {
         const regex: RegExp = /\s*due-time: (\d{2}:\d{2})\s*/;
-        const match: RegExpMatchArray | null = body.match(regex);
+        const match: RegExpMatchArray | null = bodyHeader.match(regex);
 
         if (match) {
             return match[1];
@@ -119,7 +126,21 @@ export default class DateActions {
     }
 
     /**
-     * Calculates the time left until the due date.
+     * Extract's the time zone from the issue body. The time zone is expected to be in format UTC[+|-]HH:MM.
+     * @param bodyHeader the body of the issue.
+     * @returns The due time or null if the due time is not found.
+     */
+    private extractTimeZone(bodyHeader: string): string | null {
+        const regex: RegExp = /\s*time-zone: (UTC[+|-]\d{2}:\d{2})\s*/;
+        const match: RegExpMatchArray | null = bodyHeader.match(regex);
+
+        if (match) {
+            return match[1];
+        }
+    }
+
+    /**
+     * Calculates the time left until the due date, taking into account time zones.
      * @param issue issue with a due date.
      * @returns Time until due date.
      */
