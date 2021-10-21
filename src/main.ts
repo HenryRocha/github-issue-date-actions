@@ -82,7 +82,7 @@ async function main() {
         // This is needed so we don't comment on the same issue multiple times at once.
         if (comments.length > 0) {
             console.info(`Commenting on issue #${issue.number}:\n-->\n${comments[0]}\n<--`);
-            // dateActions.commentOnIssue(issue.number, comments[0]);
+            dateActions.commentOnIssue(issue.number, comments[0]);
         }
 
         // Depending on the time until the due date, add to the issue a label
