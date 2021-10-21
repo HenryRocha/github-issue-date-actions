@@ -1,17 +1,6 @@
-import { debug } from '@actions/core';
 import { getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
-
-// Creating custom types for the GitHub API.
-type GetIssueResponse = RestEndpointMethodTypes['issues']['get']['response'];
-type Issue = GetIssueResponse['data'];
-type ListIssuesForRepoResponse = RestEndpointMethodTypes['issues']['listForRepo']['response'];
-
-export type FullIssue = Issue & {
-    due_date: Date;
-    reminders: Date[];
-};
+import { FullIssue, Issue, ListIssuesForRepoResponse } from './types';
 
 export default class DateActions {
     private readonly octo: InstanceType<typeof GitHub>;
@@ -58,7 +47,6 @@ export default class DateActions {
                 let newIssue: FullIssue = issue as FullIssue;
                 newIssue.due_date = dueDate;
                 newIssue.reminders = reminders;
-                debug(`Issue #${issue.number} has due date`);
                 issuesWithDueDate.push(newIssue);
             }
         }
@@ -173,10 +161,9 @@ export default class DateActions {
                             );
                         }
 
-                        debug(`Found reminder: ${reminder.toString()}`);
                         reminders.push(reminder);
                     } catch (error) {
-                        debug(`Error parsing reminder: ${reminderStr}`);
+                        console.warn(`Error parsing reminder: ${reminderStr}`);
                     }
                 }
 
@@ -191,23 +178,28 @@ export default class DateActions {
      * @param labelsToRemove list labels to remove from the issue.
      * @param labelsToAdd list labels to add to the issue.
      */
-    public async setLabels(
+    public async setIssueLabels(
         issue: Issue,
         labelsToRemove: string[],
         labelsToAdd: string[],
     ): Promise<void> {
+        console.info(`Adding ${labelsToAdd} to issue #${issue.number}.`);
+
         const originalLabels: string[] = issue.labels.map((label: any) => label.name);
-        debug(`Original labels for issue ${issue.number}:\n${originalLabels}`);
 
         // Remove labels in the 'labelsToRemove' array.
         let labelsToSet: string[] = originalLabels.filter(
             (label: string) => !labelsToRemove.includes(label),
         );
-        debug(`Filtered labels for issue ${issue.number}:\n${labelsToSet}`);
 
         // Add labels in the 'labelsToKeep' array.
         labelsToSet = labelsToSet.concat(labelsToAdd);
-        debug(`Setting labels for issue ${issue.number}:\n${labelsToSet}`);
+
+        // If the labels to set are the same as the original labels, no need to update.
+        if (labelsToSet.every((label: string) => originalLabels.includes(label))) {
+            console.info(`Not updating labels for issue #${issue.number}, no changes.`);
+            return;
+        }
 
         await this.octo.rest.issues.setLabels({
             owner: this.repositoryOwner,
@@ -215,46 +207,6 @@ export default class DateActions {
             issue_number: issue.number,
             labels: labelsToSet,
         });
-    }
-
-    /**
-     * Calculates the time left until the given date.
-     * @param start start date.
-     * @param end end date. Default is current date.
-     * @returns Time until due date.
-     */
-    public getTimeUntilDate(start: Date, end: Date = new Date()): number {
-        return start.getTime() - end.getTime();
-    }
-
-    /**
-     * Calculates the minutes left until the given date.
-     * @param start start date.
-     * @param end end date. Default is current date.
-     * @returns Minutes until due date.
-     */
-    public getMinutesUntilDate(date: Date, end: Date = new Date()): number {
-        return Math.floor(this.getTimeUntilDate(date, end) / (1000 * 60));
-    }
-
-    /**
-     * Calculates the days left until the given date.
-     * @param start start date.
-     * @param end end date. Default is current date.
-     * @returns days until due date.
-     */
-    public getDaysUntilDate(date: Date, end: Date = new Date()): number {
-        return Math.floor(this.getMinutesUntilDate(date, end) / (60 * 24));
-    }
-
-    /**
-     * Calculates the hours left until the given date.
-     * @param start start date.
-     * @param end end date. Default is current date.
-     * @returns hours until due date.
-     */
-    public getHoursUntilDate(date: Date, end: Date = new Date()): number {
-        return Math.floor(this.getMinutesUntilDate(date, end) / 60);
     }
 
     /**

@@ -4,7 +4,8 @@
     "description": "Add due dates and times to your GitHub issues.",
     "main": "index.ts",
     "scripts": {
-        "build": "ncc build src/main.ts --out dist --minify --license ./LICENSE"
+        "build": "ncc build src/main.ts --out dist --minify --license ./LICENSE",
+        "dev": "npm run build && dotenv -e .env -- node dist/index.js"
     },
     "repository": {
         "type": "git",
@@ -28,10 +29,12 @@
     "homepage": "https://github.com/HenryRocha/github-issue-date-actions#readme",
     "devDependencies": {
         "@vercel/ncc": "^0.31.1",
+        "dotenv-cli": "^4.0.0",
         "typescript": "^4.4.4"
     },
     "dependencies": {
         "@actions/core": "^1.6.0",
-        "@actions/github": "^5.0.0"
+        "@actions/github": "^5.0.0",
+        "env-var": "^7.0.1"
     }
 }
